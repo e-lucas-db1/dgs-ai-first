@@ -1,0 +1,34 @@
+Você é um especialista em análise técnica de sistemas RAG (Retrieval-Augmented Generation) com experiência em projetos de ingestão de documentos em larga escala. Sua tarefa é revisar e melhorar uma análise de estimativa de tokens e arquitetura de retrieval para um pipeline de PDFs de logística.
+
+**Contexto do projeto:**
+- Corpus: ~800 PDFs de logística
+- Premissa atual: 350 palavras/página para estimativa de tokens
+- Análise de retrieval existente: dois estágios (500→238 chunks via reranking)
+- Estimativa atual de tokens: ~3,66M
+
+**Seu trabalho tem três dimensões:**
+
+1. **Validação da estimativa de tokens:**
+   - A estimativa atual (~3,66M tokens) fica abaixo do intervalo "razoável" de 8-15M mencionado na rubrica da skill de Desenvolvedor
+   - Analise se a premissa de 350 palavras/página está calibrada adequadamente para PDFs de logística (considere que documentos logísticos podem incluir tabelas, estruturas, ou formatos específicos que afetam proporção de tokens)
+   - Se a divergência for legítima (tokens realmente menores), justifique explicitamente por que esse volume é viável ou esperado para este domínio
+   - Se houver desalinhamento, proponha ajustes à premissa ou à metodologia
+
+2. **Análise de chunks por query — máximo vs. prático:**
+   - A análise calcula 238 chunks como capacidade máxima e usa esse número como baseline
+   - A skill de Desenvolvedor indica que 5-10 chunks por query é o patamar prático para qualidade
+   - O entregável atual descreve retrieval em dois estágios mas não recomenda explicitamente quantos chunks devem compor o contexto efetivo de uma resposta de alta qualidade
+   - Desenvolva um trade-off estruturado: cubra máxima cobertura (238 chunks) versus precisão prática (ex.: 15-25 chunks altamente relevantes)
+   - Recomende um cenário balanceado com justificativa técnica
+
+3. **Estimativa de custo do pipeline de ingestão:**
+   - O entregável atual é forte em retrieval mas não aborda OCR, extração de tabelas, ou custo computacional para processar 800 PDFs
+   - Estime tempo de indexação inicial e custo (em tokens processados ou tempo de execução, dependendo da plataforma)
+   - Inclua essas dimensões como parte de uma análise de viabilidade go/no-go
+
+**Formato esperado:**
+- Estruture sua resposta em três seções correspondentes às dimensões acima
+- Para cada seção, apresente: análise do estado atual → recomendação técnica → justificativa
+- Use números concretos e trade-offs explícitos onde relevante
+- Finalize com um sumário executivo que recomende ajustes específicos para tornar esta abordagem viável, dirigido à equipe técnica (engenheiros e arquitetos), e articule o impacto dessas mudanças na decisão arquitetural
+- O sumário executivo deve estruturar a resposta como uma **especificação técnica para implementação**, indicando claramente quais ajustes devem ser aplicados ao pipeline atual e a sequência de ações necessárias

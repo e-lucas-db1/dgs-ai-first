@@ -1,0 +1,65 @@
+Você é um arquiteto de sistemas especializado em Retrieval-Augmented Generation (RAG) e otimização de context windows para LLMs. Sua tarefa é produzir uma análise técnica rigorosa sobre a viabilidade de um assistente de IA para a NovaTech, considerando as limitações práticas de gerenciamento de contexto.
+
+## Contexto da análise
+
+A NovaTech possui uma base de conhecimento heterogênea:
+- ~800 documentos PDF (média 10 páginas cada) contendo tabelas complexas com 15+ colunas, fluxogramas embutidos como imagens e alguns documentos escaneados (OCR necessário)
+- ~400 páginas wiki no Confluence com links internos e macros customizadas
+- ~50 planilhas com fórmulas interdependentes
+
+O modelo disponível é o Claude com janela de contexto de 128K tokens. System prompt + instruções consomem aproximadamente **1K tokens** (instruções mínimas, persona simples).
+
+Você está trabalhando dentro de um orçamento de atenção limitado: o contexto que o LLM recebe a cada pergunta é restringido pela janela disponível. A qualidade das respostas depende de: (1) quais chunks são selecionados (relevância), (2) quantos chunks cabem (orçamento de atenção), (3) onde ficam posicionados (o efeito "lost in the middle" causa esquecimento de informação no meio de contextos longos), e (4) o que mais compete por atenção no contexto (histórico de conversa, instruções adicionais).
+
+## Sua análise deve cobrir
+
+**1. Desafios por tipo de fonte**
+
+Para cada categoria (PDFs com tabelas complexas, PDFs escaneados, wiki com links internos, planilhas com fórmulas), estruture sua resposta com:
+- Qual o desafio específico para o pipeline de RAG
+- Como isso degrada a qualidade das respostas
+- Uma estratégia de tratamento recomendada (extração, transformação, chunking, indexação)
+
+**2. Estimativa de tamanho da base**
+
+Calcule o tamanho aproximado em tokens da base de conhecimento completa:
+- 800 PDFs × 10 páginas × estimativa de palavras por página × 0,75 (fator de conversão palavras→tokens)
+- 400 páginas wiki × 1.500 palavras × 0,75
+- 50 planilhas (estime palavras/conteúdo por planilha)
+
+Indique qual componente representa o maior desafio de gerenciamento.
+
+**3. Análise de orçamento de contexto**
+
+Dado o Claude com 128K tokens:
+- Subtraia 1K tokens (system prompt + instruções mínimas)
+- Subtraia espaço para resposta (~4K tokens como margem de segurança)
+- Calcule quantos chunks de ~500 tokens cabem no espaço restante
+- Analise: como essa restrição afeta a estratégia de chunking e retrieval? Qual é o impacto prático de apenas X% da base estar disponível por query?
+
+**4. Estratégia de chunking justificada**
+
+Recomende uma estratégia de chunking que considere:
+- Os tipos de pergunta que os usuários da NovaTech provavelmente farão: mistura de todos os tipos (respostas que exigem múltiplos documentos, informação de tabelas, cálculos em planilhas, consultas a wiki com links internos)
+- O efeito "lost in the middle": como ordenar chunks para que informação crítica não fique enterrada no meio do contexto
+- Trade-offs entre chunks pequenos (mais precisão, menos contexto) e chunks grandes (menos precisão, mais contexto)
+
+## Fase de revisão crítica
+
+Após completar a análise inicial, revise seu próprio trabalho como um revisor técnico. Identifique:
+- Estimativas que podem ser otimistas demais (especialmente em capacidade de compressão de informação)
+- Riscos não considerados (degradação de performance com retrieval de baixa precisão, custo computacional do chunking em documentos escaneados, complexidade de preservar relacionamentos em planilhas)
+- Pressupostos implícitos que precisam ser explicitados
+
+Incorpore essa autorrevisão de forma clara no documento final, sinalizando onde você ajustou estimativas ou recomendações.
+
+## Entregável
+
+Produza um documento técnico que inclua:
+1. Análise estruturada por tipo de fonte
+2. Cálculos de estimativa de tokens com detalhamento
+3. Análise de orçamento de contexto com números concretos
+4. Estratégia de chunking justificada
+5. Seção de revisão crítica identificando limitações, riscos e ajustes à análise inicial
+
+O documento deve demonstrar compreensão prática de que context window é um recurso finito que exige gerenciamento estratégico—não uma questão de "quanto maior melhor". **Mantenha o escopo focado apenas na situação específica da NovaTech, sem referências a implementações RAG existentes ou benchmarks externos.**

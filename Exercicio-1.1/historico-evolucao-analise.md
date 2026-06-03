@@ -127,15 +127,36 @@ As seções 1.1 a 1.4 foram atualizadas com casos concretos dos documentos reais
 
 ---
 
+## Versão 4 — Recalibração de estimativas e análise de pipeline
+
+**O que foi pedido:** incorporar três lacunas identificadas na avaliação externa do exercício: (1) recalibrar a estimativa de tokens para o domínio logístico real, (2) desenvolver o trade-off entre chunks máximos e chunks práticos por query, e (3) adicionar análise de viabilidade do pipeline de ingestão.
+
+**O que mudou e por quê:**
+
+**Estimativa de tokens recalibrada (Seção 2):**
+O modelo anterior usava overhead fixo de 500 tokens por página de tabela — derivado de uma heurística para documentos genéricos. Para tabelas com 15+ colunas (padrão nos documentos da NovaTech), a serialização Markdown real é ~5× maior: uma tabela de 15 colunas × 20 linhas gera ~1.170 tokens. Adicionalmente, documentos logísticos têm um terceiro perfil ausente nas versões anteriores — formulários estruturados (CT-e, manifestos, romaneios) com campos label:valor e identificadores alfanuméricos que tokenizam como múltiplos tokens. O total revisado passa de ~3,66M para ~9,01M tokens (+2,46×), agora dentro do intervalo de referência para bases de conhecimento de escala equivalente.
+
+**Dimensionamento adaptativo de chunks (Seção 4.3):**
+A análise anterior calculava 238 chunks como máximo teórico e usava esse número como baseline. A v4 introduz o `CHUNK_BUDGET` por tipo de intenção: de 5 chunks para queries factuais simples até 25 para multi-documento. O impacto operacional é significativo — para 320 queries/dia, a diferença entre 238 chunks fixos e 15 chunks adaptativos representa ~$3.200/mês em custo de tokens de entrada. Além do custo, o dimensionamento adaptativo reduz o efeito de diluição de atenção: com 15 chunks (~7,5K tokens), o modelo opera com alta densidade de sinal em vez de baixa densidade em contexto diluído.
+
+**Pipeline de ingestão como análise de viabilidade (Seção 7 — nova):**
+A análise de viabilidade estava incompleta sem estimar o custo e o cronograma do pipeline. A nova seção cobre cinco estágios (classificação, extração, OCR, tabelas, embeddings/indexação), com estimativas de tempo e custo para cenário cloud (~$87, ~1,5h paralelizável) e self-hosted (~$10, ~2,5h com GPU). Critérios go/no-go explícitos: a validação manual de tabelas críticas (3-4h de engenheiro, não automatizável) e a decisão arquitetural sobre a pasta de rede `\\novatech-fs\` (bloqueador para o caso de uso de cálculo de valor de frete).
+
+**Arquivo gerado:** `analise-rag-novatech-v4.md`
+
+---
+
 ## Síntese do processo de evolução
 
-| Dimensão | v1 | v2 | v3 |
-|---|---|---|---|
-| **Ponto de partida** | Prompt estruturado com instrução de autorrevisão | Seção 5 (autorrevisão) da v1 | Documentação real do Anexo A |
-| **Tipo de revisão** | Autorrevisão crítica sem nova informação | Incorporação das críticas próprias | Validação e confronto com dados reais |
-| **Principais mudanças** | Criação da análise base + identificação de problemas | Recálculo de estimativas + novas estratégias | Resolução de pressupostos + 5 novos problemas concretos |
-| **Cobertura por query** | ~4,7% | ~3,25% | ~3,25% (volume igual; qualidade efetiva menor) |
-| **Pressupostos pendentes** | 6 implícitos, não mapeados | 3 explícitos, não resolvidos | 0 pendentes (2 resolvidos, 1 transformado em decisão de arquitetura) |
-| **Problemas hipotéticos vs concretos** | Todos hipotéticos | Todos hipotéticos com maior precisão | 5 problemas confirmados com evidência textual |
+| Dimensão | v1 | v2 | v3 | v4 |
+|---|---|---|---|---|
+| **Ponto de partida** | Prompt estruturado com instrução de autorrevisão | Seção 5 (autorrevisão) da v1 | Documentação real do Anexo A | Avaliação externa com gaps identificados |
+| **Tipo de revisão** | Autorrevisão crítica sem nova informação | Incorporação das críticas próprias | Validação e confronto com dados reais | Recalibração por domínio + análise operacional |
+| **Principais mudanças** | Criação da análise base + identificação de problemas | Recálculo de estimativas + novas estratégias | Resolução de pressupostos + 5 novos problemas concretos | Recalibração de tokens + chunks adaptativos + pipeline de ingestão |
+| **Estimativa total de tokens** | ~2,6M | ~3,66M | ~3,66M | ~9,01M |
+| **Cobertura por query** | ~4,7% | ~3,25% | ~3,25% (volume igual; qualidade efetiva menor) | ~1,32% (corpus calibrado) |
+| **Chunks por query** | 246 fixos | 238 fixos | 238 fixos | 5–25 adaptativos por intenção |
+| **Pressupostos pendentes** | 6 implícitos, não mapeados | 3 explícitos, não resolvidos | 0 pendentes | 0 pendentes |
+| **Análise de pipeline** | Ausente | Ausente | Ausente | Completa (custo, cronograma, go/no-go) |
 
-O padrão que emerge nas três versões reflete uma progressão de abstrato para concreto: a v1 raciocinou sobre tipos genéricos de problema em bases heterogêneas; a v2 quantificou melhor os mesmos problemas; a v3 encontrou esses problemas acontecendo de fato nos documentos reais da NovaTech. Cada rodada de refinamento partiu de uma fonte de informação diferente — o próprio raciocínio crítico (v1→v2) e depois os dados reais (v2→v3).
+O padrão que emerge nas quatro versões reflete uma progressão de abstrato para concreto e de análise para implementação: a v1 raciocinou sobre tipos genéricos de problema; a v2 quantificou; a v3 encontrou esses problemas nos documentos reais; a v4 calibrou as estimativas para o domínio específico e adicionou a dimensão operacional — o que é necessário para ir de análise para decisão de construir.

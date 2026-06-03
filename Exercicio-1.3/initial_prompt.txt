@@ -1,0 +1,58 @@
+Você é um arquiteto de software construindo um pipeline RAG (Retrieval-Augmented Generation) de prova de conceito open-source. Sua tarefa é criar uma implementação funcional e testável localmente usando ferramentas gratuitas que possa ser demonstrada à liderança antes de investir em infraestrutura paga.
+
+**Seu objetivo:**
+Construir um pipeline RAG completo que ingira documentos, crie embeddings, armazene-os em um banco de dados vetorial e recupere contexto relevante para responder perguntas. A implementação deve ser:
+- Totalmente funcional e testável imediatamente em ambiente local
+- Documentada com justificativas claras para decisões de design
+- Validada contra chunks de referência fornecidos para garantir precisão na recuperação
+- Pronta para rodar localmente sem dependências de nuvem ou serviços pagos
+
+**Stack de tecnologia obrigatória (todas gratuitas/open-source):**
+- Python como linguagem de implementação
+- ChromaDB como armazenamento vetorial local (`pip install chromadb`)
+- sentence-transformers para embeddings (`pip install sentence-transformers` — use modelo `all-MiniLM-L6-v2`)
+- LangChain para orquestração (`pip install langchain`) ou implementação manual
+- Claude para testes manuais de geração de respostas (via chat) ou qualquer modelo local via Ollama
+
+**Entregas:**
+
+1. **Script de ingestão** (`ingest.py` ou similar):
+   - Lê todos os arquivos .md da pasta de documentos (Anexo A e pasta Contexto)
+   - Implementa estratégia de chunking (defina tamanho de chunk, sobreposição e lógica de divisão) — forneça justificativa clara para suas escolhas
+   - Gera embeddings usando sentence-transformers
+   - Armazena vetores e metadados no ChromaDB com rastreamento de fonte recuperável
+
+2. **Função de recuperação** (`retrieve.py` ou integrada):
+   - Recebe uma query como entrada
+   - Gera embedding para a query usando o mesmo modelo
+   - Busca no ChromaDB os N chunks mais similares (defina N; tipicamente 3-5)
+   - Retorna resultados com scores de similaridade
+
+3. **Função de montagem de prompt**:
+   - Recebe chunks recuperados e a pergunta original
+   - Constrói um prompt completo com: instruções do sistema + contexto recuperado + pergunta do usuário
+   - Formata saída pronta para enviar manualmente para Claude (pipeline prepara o prompt apenas)
+   - Inclui marcadores claros separando sistema, contexto e entrada do usuário
+
+**Validação:**
+- Chunks de referência são fornecidos (Anexo B com mapa de cobertura) — seu pipeline deve recuperar corretamente esses chunks para queries de validação
+- Teste sua implementação contra o mapa de cobertura de referência para confirmar precisão na recuperação
+- Documente qualquer lacuna de recuperação e explique por que ocorreram
+
+**Requisitos de qualidade de código:**
+- Implementação limpa e legível com comentários inline explicando decisões-chave
+- Foco em funcionalidade core do RAG (MVP) sem complexidade adicional
+- Configuração no topo dos scripts (tamanho de chunk, sobreposição, threshold de similaridade, número de resultados)
+- Sem caminhos hardcoded — use caminhos relativos ou arquivos de configuração
+
+**Formato de saída:**
+Forneça scripts Python completos e funcionais organizados logicamente. Inclua um README com:
+- Como configurar o ambiente (comandos pip install)
+- Como executar cada componente
+- Queries de exemplo e resultados de recuperação esperados
+- Explicação da estratégia de chunking e por que você a escolheu
+- Quaisquer limitações ou trade-offs no seu design
+
+Analise padrões de código existentes na pasta Exercicio-1.1 para manter consistência com a estrutura do projeto. Verifique os documentos reais na pasta Contexto para entender o formato e conteúdo que seu pipeline processará.
+
+Você está trabalhando como se isso fosse entregue diretamente ao Tech Lead para testes locais imediatos — assume que ele tem Python instalado, mas nada mais.
